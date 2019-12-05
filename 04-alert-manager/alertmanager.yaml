@@ -1,0 +1,34 @@
+global: 
+  resolve_timeout: 5m
+  smtp_require_tls: false
+  smtp_smarthost: 'smtp.mailgun.org:465'
+  smtp_from: '360 Alerts <host email>'
+  smtp_auth_username: ''
+  smtp_auth_identity: ''
+  smtp_auth_password: ''
+route: 
+  receiver: all
+  repeat_interval: 12h
+  routes:
+  - match_re:
+      alertname: Watchdog
+    receiver: 'testing'
+    repeat_interval: 12h
+    continue: true
+  - match_re:
+      alertname: KubeAPIDown|KubeDeploymentReplicasMismatch|KubeJobFailed|KubeMemOvercommit|KubePodCrashLooping|KubePodNotReady|PostgresDiskFull85|HAProxyLBDown|PostgresMasterDown|TargetDown|NFSServerDown|NFSDiskFull85
+    receiver: 'clients'
+    continue: true
+  - match:
+      severity: 'critical'
+    receiver: 'critical'
+    continue: true
+receivers:
+- name: 'all'
+  email_configs:
+  - to: 'sarasa@gmail.com'
+  webhook_configs:
+  - url: http://prom2googlechat.monitoring.svc.cluster.local:3000/
+    send_resolved: true
+templates:
+- '*.tmpl'
